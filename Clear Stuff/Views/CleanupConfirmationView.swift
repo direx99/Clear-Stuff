@@ -127,7 +127,9 @@ struct CleanupSettingsView: View {
                 }
             }
             Section("Privacy") {
-                Text("Everything stays on your Mac. Nothing is removed automatically.")
+                Text("Everything stays on your Mac. Cleanup history stores the last 100 file paths locally until you clear it. Nothing is removed automatically.")
+                Button("Clear Cleanup History", role: .destructive, action: model.clearHistory)
+                    .disabled(model.busy || model.history.isEmpty)
             }
         }
         .formStyle(.grouped)

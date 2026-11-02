@@ -266,6 +266,11 @@ final class CleanupModel {
         exclusions.removeAll()
         defaults.removeObject(forKey: "excludedPaths")
     }
+    func clearHistory() {
+        guard !busy else { return }
+        history.removeAll()
+        defaults.removeObject(forKey: "cleanupHistory")
+    }
     func reveal(_ url: URL) { NSWorkspace.shared.activateFileViewerSelecting([url]) }
 
     func clean() {
@@ -290,8 +295,14 @@ final class CleanupModel {
                         guard !active else { throw ScanError.busy }
                     }
                     let worker = Task.detached(priority: .userInitiated) { try TrashService().move(item) }
-                    destination = try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
-                    outcome = String(localized: "Moved to Trash")
+                    let result = try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
+                    destination = result.destination
+                    switch result {
+                    case .verified:
+                        outcome = String(localized: "Moved to Trash")
+                    case .movedButUnverified:
+                        outcome = String(localized: "Move may have completed; check Trash before retrying")
+                    }
                     items.removeAll { $0.id == item.id }
                 } catch { outcome = error.localizedDescription }
                 if scoped { item.root.stopAccessingSecurityScopedResource() }
