@@ -2,6 +2,16 @@
 
 Native SwiftUI macOS cleanup app. The current MVP scans user application caches, browser caches, Xcode DerivedData, user logs, shared caches, download cleanup candidates, and saved macOS installers using folders explicitly authorized through the macOS folder picker. No scan deletes files.
 
+## About and contributing
+
+Clear Stuff is an initial open-source build by **Dinith Hasaranga**. Everyone is welcome to contribute. Report bugs, suggest features, or ask questions in [GitHub Issues](https://github.com/direx99/Clear-Stuff/issues); pull requests are welcome too. Please avoid posting personal file paths or sensitive logs in public issues.
+
+- Email: [dinith.dash@gmail.com](mailto:dinith.dash@gmail.com)
+- GitHub repository: [direx99/Clear-Stuff](https://github.com/direx99/Clear-Stuff)
+- GitHub profile: [direx99](https://github.com/direx99)
+
+Licensed under the [MIT License](LICENSE).
+
 ## Run
 
 Open `Clear Stuff.xcodeproj` in Xcode and run the **Clear Stuff** scheme. The existing project targets macOS 26.4 and requires a compatible Xcode installation.

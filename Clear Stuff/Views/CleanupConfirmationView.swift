@@ -119,7 +119,12 @@ struct CleanupSettingsView: View {
                 Button("Open Full Disk Access…", action: model.openSystemSettings)
                     .disabled(model.grantingAccess)
             }
-            Section("About cleanup") {
+            Section("About Clear Stuff") {
+                Text("An initial open-source build by Dinith Hasaranga. Everyone is welcome to contribute.")
+                Link("Email Dinith", destination: URL(string: "mailto:dinith.dash@gmail.com")!)
+                Link("GitHub repository", destination: URL(string: "https://github.com/direx99/Clear-Stuff")!)
+                Link("Dinith’s GitHub profile", destination: URL(string: "https://github.com/direx99")!)
+                Link("Report a bug or suggest a feature on GitHub Issues", destination: URL(string: "https://github.com/direx99/Clear-Stuff/issues")!)
                 DisclosureGroup("Which files are included?") {
                     Text("App and browser caches, Xcode build files, logs, unfinished downloads, and saved installers. Review each file before removing it.")
                     Text("Browser passwords, bookmarks, and history are preserved. Download results may include incomplete ZIPs; keep files you still need.")
