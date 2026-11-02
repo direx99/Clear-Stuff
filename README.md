@@ -18,6 +18,8 @@ The window adapts down to 580 × 520 points. Narrow windows replace the sidebar 
 
 Folder access is saved with security-scoped bookmarks. Stale bookmarks are renewed when possible; unavailable grants can be reconnected. Use **Settings → Remove Access** to discard the saved access and related scan results. All history and exclusions are stored locally.
 
+The last 100 cleanup results include full file paths. Use **Settings → Clear Cleanup History** to erase them; removing folder access does not erase history. Cleanup stages each selected item beside its original location and rechecks it before moving it to Trash. If that check fails and the item cannot be returned to its original path, the activity report identifies the staged path for manual recovery.
+
 Permission failures appear with an access explanation above the skipped-location details. Use **Reconnect Folder…** to grant the affected scan folder again. If access is still denied, use **Full Disk Access…** to open the relevant Settings pane and review Clear Stuff under **Privacy & Security → Files & Folders** or **Full Disk Access**. Quit and reopen the app after changing permissions, then scan again. These settings do not override sandbox restrictions, file ownership, or all macOS protections. Unreadable locations remain skipped; accessible candidates are still available for review.
 
 ## Implemented scope
@@ -56,3 +58,7 @@ xcodebuild -project 'Clear Stuff.xcodeproj' -scheme 'Clear Stuff' -configuration
 Tests create disposable fixtures for manual selection, browser profile preservation, exclusions, symlinks, hard links, changed data, cancellation, scan limits, macOS path aliases, and a real Trash operation. The Trash test moves only its generated file and removes that fixture afterward.
 
 Storage totals are logical size estimates and cannot predict APFS clone or snapshot reclamation. File coordination only controls cooperating writers: stop all command-line builds before cleaning DerivedData. Checks cannot guarantee safety against another process deliberately replacing paths during a move. This is an MVP, not a notarized release; broader cleanup rules require separate validation.
+
+## Public distribution
+
+Archive and distribute through Xcode Organizer using a **Developer ID Application** identity, then notarize and staple the exported app. Run `scripts/verify-public-release.sh '/path/to/Clear Stuff.app'` against the exact app you plan to publish. It rejects development signatures, a missing hardened runtime, missing stapled notarization, or a failed Gatekeeper assessment. Test that artifact on a clean Mac before publishing. The local development build is not a notarized release.
