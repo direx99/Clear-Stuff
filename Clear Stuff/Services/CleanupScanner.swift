@@ -86,7 +86,7 @@ nonisolated struct CleanupScanner: Sendable {
             }
         }
         var summary = TreeSummary()
-        try measure(url, summary: &summary, visited: &visited, depth: 0)
+        try measure(url, basePath: url.path, summary: &summary, visited: &visited, depth: 0)
         let stamp = try Self.stamp(url)
         let modified = summary.newest
         if category == .browsers {
@@ -109,6 +109,14 @@ nonisolated struct CleanupScanner: Sendable {
                            modified: modified, stamp: stamp, signature: summary.digest,
                            canClean: true, reason: reason, fileCount: summary.count,
                            relativePath: String(url.path.dropFirst(canonicalRoot.path.count + 1)))
+    }
+
+    /// A staged item keeps the same fingerprint after its top-level path changes.
+    func fingerprint(_ url: URL) throws -> (stamp: FileStamp, signature: String) {
+        var summary = TreeSummary()
+        var visited = 0
+        try measure(url, basePath: url.path, summary: &summary, visited: &visited, depth: 0)
+        return (try Self.stamp(url), summary.digest)
     }
 
     private func collectLogs(_ url: URL, root: URL, excluded: Set<String>, result: inout ScanResult,
@@ -135,13 +143,17 @@ nonisolated struct CleanupScanner: Sendable {
         }
     }
 
-    private func measure(_ url: URL, summary: inout TreeSummary, visited: inout Int, depth: Int) throws {
+    private func measure(_ url: URL, basePath: String, summary: inout TreeSummary, visited: inout Int, depth: Int) throws {
         try Task.checkCancellation()
         visited += 1
         guard visited <= maximumEntries, depth < 64 else { throw ScanError.limit }
         let values = try url.resourceValues(forKeys: [.isSymbolicLinkKey, .isDirectoryKey, .isRegularFileKey, .fileSizeKey, .volumeIdentifierKey])
         let stamp = try Self.stamp(url)
-        summary.hash.update(data: Data("\(url.path):\(stamp)".utf8))
+        // Renaming the candidate changes its ctime; child ctimes still detect changes.
+        let stableStamp = url.path == basePath
+            ? "\(stamp.device):\(stamp.inode):\(stamp.size):\(stamp.modifiedSeconds):\(stamp.modifiedNanoseconds)"
+            : "\(stamp)"
+        summary.hash.update(data: Data("\(url.path.dropFirst(basePath.count)):\(stableStamp)".utf8))
         summary.newest = max(summary.newest, Date(timeIntervalSince1970: Double(stamp.modifiedSeconds)))
         if values.isSymbolicLink == true {
             return
@@ -151,7 +163,7 @@ nonisolated struct CleanupScanner: Sendable {
             for child in children.sorted(by: { $0.path < $1.path }) {
                 let childStamp = try Self.stamp(child)
                 guard childStamp.device == stamp.device else { throw ScanError.unsafePath }
-                try measure(child, summary: &summary, visited: &visited, depth: depth + 1)
+                try measure(child, basePath: basePath, summary: &summary, visited: &visited, depth: depth + 1)
             }
         } else if values.isRegularFile == true {
             summary.count += 1
